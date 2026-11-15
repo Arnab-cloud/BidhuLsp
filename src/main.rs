@@ -1,3 +1,4 @@
+mod languageserver;
 mod rpc;
 
 use log::{error, info};
