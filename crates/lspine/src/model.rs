@@ -1,25 +1,56 @@
+use crate::error::LSPError;
+
 pub struct WillSaveTextDocumentParams;
 pub struct TextEdit;
 
+pub type RequestId = serde_json::Value;
+
+#[derive(serde::Deserialize, Debug)]
+pub struct Envelope {
+    pub id: Option<RequestId>,
+    pub method: Option<String>,
+    #[serde(default)]
+    pub params: serde_json::Value,
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub enum Message {
-    MRequest(Request),
-    MResponse,
-    MNotification(serde_json::Value),
+    Request {
+        id: RequestId,
+        method: String,
+        params: serde_json::Value,
+    },
+    Response {
+        id: RequestId,
+    },
+    Notification {
+        method: String,
+        params: serde_json::Value,
+    },
+}
+
+impl Envelope {
+    pub fn classify(self) -> Result<Message, LSPError> {
+        match (self.id, self.method) {
+            (Some(id), Some(method)) => Ok(Message::Request {
+                id,
+                method,
+                params: self.params,
+            }),
+            (Some(id), None) => Ok(Message::Response { id }),
+            (None, Some(method)) => Ok(Message::Notification {
+                method,
+                params: self.params,
+            }),
+            (None, None) => Err(LSPError::Protocol(
+                "message has neither id nor method".into(),
+            )),
+        }
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-pub enum Request {
-    Initialize(IntializeRequest),
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-pub enum Response {
-    Initialize(InitializeResult),
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-pub struct IntializeRequest {
+pub struct InitializeRequest {
     pub jsonrpc: String,
     pub id: i32,
     pub method: String,

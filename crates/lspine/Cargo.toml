@@ -1,0 +1,9 @@
+[package]
+name = "lspine"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true

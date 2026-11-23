@@ -1,0 +1,9 @@
+[package]
+name = "bidhulsp"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+lspine.workspace = true
+log.workspace = true
+simplelog.workspace = true
