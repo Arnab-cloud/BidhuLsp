@@ -31,6 +31,10 @@ pub trait LanguageServer {
         self.notification("textDocument/didOpen");
     }
 
+    fn did_close_text_docuement(&mut self, _params: DidCloseTextDocumentParams) {
+        self.notification("textDocument/didOpen");
+    }
+
     fn will_save_wait_until_text_document(
         &mut self,
         _params: WillSaveTextDocumentParams,

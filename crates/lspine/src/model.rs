@@ -118,6 +118,13 @@ pub struct DidChangeTextDocumentParams {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct DidCloseTextDocumentParams {
+    /// The document that was closed.
+    #[serde(rename = "textDocument")]
+    text_document: TextDocumentIdentifier,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub struct TextDocumentItem {
     /// The text document's URI.
     pub uri: DocumentUri,

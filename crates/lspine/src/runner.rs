@@ -2,9 +2,12 @@ use log::{error, info, warn};
 use std::io::{BufRead, Write};
 
 use crate::{
-    DidChangeTextDocumentParams, DidOpenTextDocumentParams, LanguageServer,
+    LanguageServer,
     error::LSPError,
-    model::{Envelope, InitializeRequestParams, Message, RequestId},
+    model::{
+        DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+        Envelope, InitializeRequestParams, Message, RequestId,
+    },
     transport::{read_message, write_message},
 };
 
@@ -138,11 +141,16 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
                 self.language_server.did_open_text_docuement(params);
                 Ok(None)
             }
-
             (State::Running, "textDocument/didChange") => {
                 let params: DidChangeTextDocumentParams = serde_json::from_value(params)
                     .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
                 self.language_server.did_change_text_docuement(params);
+                Ok(None)
+            }
+            (State::Running, "textDocument/didClose") => {
+                let params: DidCloseTextDocumentParams = serde_json::from_value(params)
+                    .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
+                self.language_server.did_close_text_docuement(params);
                 Ok(None)
             }
             (State::Running, "exit") => Ok(Some(1)),
