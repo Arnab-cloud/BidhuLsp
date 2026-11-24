@@ -1,7 +1,5 @@
 use crate::error::LSPError;
 
-pub struct TextEdit;
-
 pub type RequestId = serde_json::Value;
 pub type DocumentUri = String;
 
@@ -63,6 +61,9 @@ pub struct InitializeResult {
     #[serde(rename = "serverInfo")]
     pub server_info: ServerInfo,
 }
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct WillSaveWaitUntilResult(pub Option<Box<[TextEdit]>>);
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub struct ClientInfo {
@@ -226,4 +227,17 @@ pub enum TextDocumentSaveReason {
 
     /// When the editor lost focus.
     FocusOut = 3,
+}
+
+/// A textual edit applicable to a text document.
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct TextEdit {
+    /// The range of the text document to be manipulated. To insert
+    /// text into a document, create a range where start === end.
+    range: Range,
+
+    /// The string to be inserted. For delete operations, use an
+    /// empty string.
+    #[serde(rename = "newText")]
+    new_text: String,
 }

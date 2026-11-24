@@ -182,7 +182,7 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
                     .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
                 let result = self.language_server.initialize(&params)?;
                 self.state = State::Running;
-                serde_json::to_value(result).map_err(|e| LSPError::from(e).into())
+                serde_json::to_value(result).map_err(|err| LSPError::from(err).into())
             }
             (State::Uninitialized, _) => Err(RpcError::new(
                 SERVER_NOT_INITIALIZED,
@@ -198,6 +198,14 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
                 self.language_server.shutdown()?;
                 self.state = State::ShuttingDown;
                 Ok(serde_json::Value::Null)
+            }
+            (State::Running, "textDocument/willSaveWaitUntil") => {
+                let params = serde_json::from_value(params)
+                    .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
+                let text_edits = self
+                    .language_server
+                    .will_save_wait_until_text_document(&params)?;
+                serde_json::to_value(text_edits).map_err(|err| LSPError::from(err).into())
             }
             (State::Running, other) => Err(RpcError::new(
                 METHOD_NOT_FOUND,

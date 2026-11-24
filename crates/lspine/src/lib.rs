@@ -41,8 +41,8 @@ pub trait LanguageServer {
 
     fn will_save_wait_until_text_document(
         &mut self,
-        _params: WillSaveTextDocumentParams,
-    ) -> Result<Option<Vec<TextEdit>>, LSPError> {
-        Ok(None)
+        _params: &WillSaveTextDocumentParams,
+    ) -> Result<WillSaveWaitUntilResult, LSPError> {
+        Ok(WillSaveWaitUntilResult(None))
     }
 }
