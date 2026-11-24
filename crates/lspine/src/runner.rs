@@ -127,28 +127,27 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
         method: &str,
         params: serde_json::Value,
     ) -> Result<Option<i32>, RpcError> {
-        match method {
-            "textDocument/didOpen" => {
+        match (self.state, method) {
+            (State::Uninitialized, _) => Err(RpcError::new(
+                SERVER_NOT_INITIALIZED,
+                "server not initialized",
+            )),
+            (State::Running, "textDocument/didOpen") => {
                 let params: DidOpenTextDocumentParams = serde_json::from_value(params)
                     .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
                 self.language_server.did_open_text_docuement(params);
+                Ok(None)
             }
-            "exit" => {
-                let code = if self.state == State::ShuttingDown {
-                    0
-                } else {
-                    1
-                };
-                return Ok(Some(code));
+            (State::Running, "exit") => Ok(Some(1)),
+            (State::Running, _) => {
+                self.language_server.notification(method);
+                Ok(None)
             }
-            _ => {
-                if self.state == State::Running {
-                    self.language_server.notification(method)
-                }
+            (State::ShuttingDown, "exit") => Ok(Some(0)),
+            (State::ShuttingDown, _) => {
+                Err(RpcError::new(INVALID_REQUEST, "server is shutting down"))
             }
         }
-
-        Ok(None)
     }
 
     fn handle_request(

@@ -24,7 +24,7 @@ pub trait LanguageServer {
     // TODO: client/unregisterCapability
 
     fn did_open_text_docuement(&mut self, _params: DidOpenTextDocumentParams) {
-        self.notification("textDocuement/didOpen");
+        self.notification("textDocument/didOpen");
     }
 
     fn will_save_wait_until_text_document(

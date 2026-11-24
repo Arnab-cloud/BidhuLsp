@@ -99,6 +99,9 @@ pub struct ServerInfo {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct InitializedParams;
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub struct DidOpenTextDocumentParams {
     #[serde(rename = "textDocument")]
     pub text_document: TextDocumentItem,
@@ -107,16 +110,16 @@ pub struct DidOpenTextDocumentParams {
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub struct TextDocumentItem {
     /// The text document's URI.
-    uri: DocumentUri,
+    pub uri: DocumentUri,
 
     /// The text document's language identifier.
     #[serde(rename = "languageId")]
-    language_id: String,
+    pub language_id: String,
 
     /// The version number of this document (it will increase after each
     /// change, including undo/redo).
-    version: i32,
+    pub version: i32,
 
     /// The content of the opened text document.
-    text: String,
+    pub text: String,
 }
