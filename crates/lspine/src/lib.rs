@@ -28,11 +28,15 @@ pub trait LanguageServer {
     }
 
     fn did_change_text_docuement(&mut self, _params: DidChangeTextDocumentParams) {
-        self.notification("textDocument/didOpen");
+        self.notification("textDocument/didChange");
     }
 
     fn did_close_text_docuement(&mut self, _params: DidCloseTextDocumentParams) {
-        self.notification("textDocument/didOpen");
+        self.notification("textDocument/didClose");
+    }
+
+    fn will_save_text_docuement(&mut self, _params: WillSaveTextDocumentParams) {
+        self.notification("textDocument/willSave");
     }
 
     fn will_save_wait_until_text_document(

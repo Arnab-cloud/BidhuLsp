@@ -6,7 +6,7 @@ use crate::{
     error::LSPError,
     model::{
         DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
-        Envelope, InitializeRequestParams, Message, RequestId,
+        Envelope, InitializeRequestParams, Message, RequestId, WillSaveTextDocumentParams,
     },
     transport::{read_message, write_message},
 };
@@ -151,6 +151,12 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
                 let params: DidCloseTextDocumentParams = serde_json::from_value(params)
                     .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
                 self.language_server.did_close_text_docuement(params);
+                Ok(None)
+            }
+            (State::Running, "textDocument/willSave") => {
+                let params: WillSaveTextDocumentParams = serde_json::from_value(params)
+                    .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
+                self.language_server.will_save_text_docuement(params);
                 Ok(None)
             }
             (State::Running, "exit") => Ok(Some(1)),

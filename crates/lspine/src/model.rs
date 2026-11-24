@@ -1,6 +1,5 @@
 use crate::error::LSPError;
 
-pub struct WillSaveTextDocumentParams;
 pub struct TextEdit;
 
 pub type RequestId = serde_json::Value;
@@ -124,6 +123,17 @@ pub struct DidCloseTextDocumentParams {
     text_document: TextDocumentIdentifier,
 }
 
+/// The parameters send in a will save text document notification.
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct WillSaveTextDocumentParams {
+    /// The document that will be saved.
+    #[serde(rename = "textDocument")]
+    text_document: TextDocumentIdentifier,
+
+    /// The 'TextDocumentSaveReason'.
+    reason: TextDocumentSaveReason,
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub struct TextDocumentItem {
     /// The text document's URI.
@@ -202,4 +212,18 @@ pub struct Position {
     /// If the character value is greater than the line length it defaults back
     /// to the line length.
     pub character: u32,
+}
+
+/// Represents reasons why a text document is sav
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub enum TextDocumentSaveReason {
+    /// Manually triggered, e.g. by the user pressing save, by starting
+    /// debugging, or by an API call.
+    Manual = 1,
+
+    /// Automatic after a delay.
+    AfterDelay = 2,
+
+    /// When the editor lost focus.
+    FocusOut = 3,
 }
