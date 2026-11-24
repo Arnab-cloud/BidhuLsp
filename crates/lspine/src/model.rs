@@ -136,6 +136,17 @@ pub struct WillSaveTextDocumentParams {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct DidSaveTextDocumentParams {
+    /// The document that was saved.
+    #[serde(rename = "textDocument")]
+    text_document: TextDocumentIdentifier,
+
+    /// Optional the content when saved. Depends on the includeText value
+    /// when the save notification was requested.
+    text: Option<String>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub struct TextDocumentItem {
     /// The text document's URI.
     pub uri: DocumentUri,
