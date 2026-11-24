@@ -49,4 +49,8 @@ pub trait LanguageServer {
     ) -> Result<WillSaveWaitUntilResult, LSPError> {
         Ok(WillSaveWaitUntilResult(None))
     }
+
+    fn did_rename_files_workspace(&mut self, _params: RenameFilesParams) {
+        self.notification("workspace/didRenameFiles");
+    }
 }

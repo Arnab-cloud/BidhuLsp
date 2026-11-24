@@ -6,8 +6,8 @@ use crate::{
     error::LSPError,
     model::{
         DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
-        DidSaveTextDocumentParams, Envelope, InitializeRequestParams, Message, RequestId,
-        WillSaveTextDocumentParams,
+        DidSaveTextDocumentParams, Envelope, InitializeRequestParams, Message, RenameFilesParams,
+        RequestId, WillSaveTextDocumentParams,
     },
     transport::{read_message, write_message},
 };
@@ -164,6 +164,12 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
                 let params: DidSaveTextDocumentParams = serde_json::from_value(params)
                     .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
                 self.language_server.did_save_text_docuement(params);
+                Ok(None)
+            }
+            (State::Running, "workspace/didRenameFiles") => {
+                let params: RenameFilesParams = serde_json::from_value(params)
+                    .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
+                self.language_server.did_rename_files_workspace(params);
                 Ok(None)
             }
             (State::Running, "exit") => Ok(Some(1)),

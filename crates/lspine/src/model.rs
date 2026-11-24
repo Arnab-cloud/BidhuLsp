@@ -146,6 +146,15 @@ pub struct DidSaveTextDocumentParams {
     text: Option<String>,
 }
 
+/// The parameters sent in notifications/requests for user-initiated renames
+/// of files.
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct RenameFilesParams {
+    /// An array of all files/folders renamed in this operation. When a folder
+    /// is renamed, only the folder will be included, and not its children.
+    files: Box<[FileRename]>,
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub struct TextDocumentItem {
     /// The text document's URI.
@@ -251,4 +260,18 @@ pub struct TextEdit {
     /// empty string.
     #[serde(rename = "newText")]
     new_text: String,
+}
+
+/// Represents information on a file/folder rename.
+///
+/// @since 3.16.0
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct FileRename {
+    /// A file:// URI for the original location of the file/folder being renamed.
+    #[serde(rename = "oldUri")]
+    old_uri: String,
+
+    /// A file:// URI for the new location of the file/folder being renamed.
+    #[serde(rename = "newUri")]
+    new_uri: String,
 }
