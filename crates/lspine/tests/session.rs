@@ -1,13 +1,14 @@
 //! Scripted client sessions against a MockServer, fully in memory.
 
 use lspine::{
-    LSPError, LanguageServer, Runner,
+    DidOpenTextDocumentParams, InitializedParams, LSPError, LanguageServer, Runner,
+    TextDocumentItem,
     model::{
         ClientInfo, InitializeRequestParams, InitializeResult, ServerCapabilities, ServerInfo,
     },
     transport::{encode_message, read_message},
 };
-use serde_json::{Value, json};
+use serde_json::{self, Value, json};
 
 #[derive(Default)]
 struct MockServer {
@@ -21,8 +22,8 @@ impl LanguageServer for MockServer {
         self.initialized_with = Some(InitializeRequestParams {
             process_id: p.process_id,
             client_info: ClientInfo {
-                name: "test".into(),
-                version: "1".into(),
+                name: p.client_info.name.clone(),
+                version: p.client_info.version.clone(),
             },
         });
         Ok(InitializeResult {
@@ -47,14 +48,14 @@ impl LanguageServer for MockServer {
 fn req(id: i64, method: &str, params: Value) -> Value {
     json!({"jsonrpc":"2.0","id":id,"method":method,"params":params})
 }
-fn notif(method: &str) -> Value {
-    json!({"jsonrpc":"2.0","method":method,"params":{}})
+fn notif(method: &str, params: Value) -> Value {
+    json!({"jsonrpc":"2.0","method":method,"params": params})
 }
 fn init() -> Value {
     req(
         1,
         "initialize",
-        json!({"processId": 42, "clientInfo": {"name": "test"}}),
+        json!({"processId": 42, "clientInfo": {"name": "test", "version": "1"}}),
     )
 }
 
@@ -77,10 +78,24 @@ fn play(script: &[Value]) -> (i32, MockServer, Vec<Value>) {
 fn happy_path_exits_zero() {
     let (code, server, replies) = play(&[
         init(),
-        notif("initialized"),
-        notif("textDocument/didOpen"),
+        notif(
+            "initialized",
+            serde_json::to_value(InitializedParams {}).unwrap(),
+        ),
+        notif(
+            "textDocument/didOpen",
+            serde_json::to_value(DidOpenTextDocumentParams {
+                text_document: TextDocumentItem {
+                    uri: "hello".into(),
+                    language_id: "rust".into(),
+                    version: 1,
+                    text: "hello".into(),
+                },
+            })
+            .unwrap(),
+        ),
         req(2, "shutdown", Value::Null),
-        notif("exit"),
+        notif("exit", Value::Null),
     ]);
     assert_eq!(code, 0);
     assert!(server.shutdown_called);
@@ -107,7 +122,7 @@ fn response_echoes_the_request_id_including_strings() {
 
 #[test]
 fn exit_without_shutdown_exits_one() {
-    let (code, _, _) = play(&[init(), notif("exit")]);
+    let (code, _, _) = play(&[init(), notif("exit", Value::Null)]);
     assert_eq!(code, 1);
 }
 
@@ -141,7 +156,21 @@ fn requests_after_shutdown_are_rejected() {
 
 #[test]
 fn notifications_before_initialize_are_dropped() {
-    let (_, server, _) = play(&[notif("textDocument/didOpen"), init()]);
+    let (_, server, _) = play(&[
+        notif(
+            "textDocument/didOpen",
+            serde_json::to_value(DidOpenTextDocumentParams {
+                text_document: TextDocumentItem {
+                    uri: "hello".into(),
+                    language_id: "rust".into(),
+                    version: 1,
+                    text: "hello".into(),
+                },
+            })
+            .unwrap(),
+        ),
+        init(),
+    ]);
     assert!(server.notifications.is_empty());
 }
 
