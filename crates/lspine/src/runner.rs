@@ -2,7 +2,7 @@ use log::{error, info, warn};
 use std::io::{BufRead, Write};
 
 use crate::{
-    LanguageServer,
+    DidOpenTextDocumentParams, LanguageServer,
     error::LSPError,
     model::{Envelope, InitializeRequestParams, Message, RequestId},
     transport::{read_message, write_message},
@@ -65,6 +65,10 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
         }
     }
 
+    pub fn into_parts(self) -> (T, W) {
+        (self.language_server, self.writer)
+    }
+
     pub fn run(&mut self) -> Result<i32, LSPError> {
         loop {
             if let Flow::Exit(code) = self.step()? {
@@ -105,16 +109,9 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
             }
             Message::Notification { method, params } => {
                 info!("notification {method}");
-                if method == "exit" {
-                    let code = if self.state == State::ShuttingDown {
-                        0
-                    } else {
-                        1
-                    };
-                    return Ok(Flow::Exit(code));
-                }
-                if self.state == State::Running {
-                    self.language_server.notification(&method, params);
+                if let Ok(Some(exit_code)) = self.handle_notification(&method, params) {
+                    // ignoring the error
+                    return Ok(Flow::Exit(exit_code));
                 }
                 Ok(Flow::Continue)
             }
@@ -125,6 +122,35 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
         }
     }
 
+    fn handle_notification(
+        &mut self,
+        method: &str,
+        params: serde_json::Value,
+    ) -> Result<Option<i32>, RpcError> {
+        match method {
+            "textDocument/didOpen" => {
+                let params: DidOpenTextDocumentParams = serde_json::from_value(params)
+                    .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
+                self.language_server.did_open_text_docuement(params);
+            }
+            "exit" => {
+                let code = if self.state == State::ShuttingDown {
+                    0
+                } else {
+                    1
+                };
+                return Ok(Some(code));
+            }
+            _ => {
+                if self.state == State::Running {
+                    self.language_server.notification(method)
+                }
+            }
+        }
+
+        Ok(None)
+    }
+
     fn handle_request(
         &mut self,
         method: &str,
@@ -133,7 +159,7 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
         match (self.state, method) {
             (State::Uninitialized, "initialize") => {
                 let params: InitializeRequestParams = serde_json::from_value(params)
-                    .map_err(|e| RpcError::new(INVALID_PARAMS, e.to_string()))?;
+                    .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
                 let result = self.language_server.initialize(&params)?;
                 self.state = State::Running;
                 serde_json::to_value(result).map_err(|e| LSPError::from(e).into())

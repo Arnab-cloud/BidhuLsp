@@ -4,6 +4,7 @@ pub struct WillSaveTextDocumentParams;
 pub struct TextEdit;
 
 pub type RequestId = serde_json::Value;
+pub type DocumentUri = String;
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Envelope {
@@ -95,4 +96,27 @@ pub struct ServerCapabilities {
 pub struct ServerInfo {
     pub name: String,
     pub version: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct DidOpenTextDocumentParams {
+    #[serde(rename = "textDocument")]
+    pub text_document: TextDocumentItem,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct TextDocumentItem {
+    /// The text document's URI.
+    uri: DocumentUri,
+
+    /// The text document's language identifier.
+    #[serde(rename = "languageId")]
+    language_id: String,
+
+    /// The version number of this document (it will increase after each
+    /// change, including undo/redo).
+    version: i32,
+
+    /// The content of the opened text document.
+    text: String,
 }

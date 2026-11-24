@@ -1,7 +1,7 @@
 mod error;
-mod model;
+pub mod model;
 mod runner;
-mod transport;
+pub mod transport;
 
 pub use error::*;
 pub use model::*;
@@ -18,10 +18,14 @@ pub trait LanguageServer {
 
     fn shutdown(&mut self) -> Result<(), LSPError>;
 
-    fn notification(&mut self, _method: &str, _params: serde_json::Value) {}
+    fn notification(&mut self, _method: &str) {}
 
     // TODO: client/registerCapability
     // TODO: client/unregisterCapability
+
+    fn did_open_text_docuement(&mut self, _params: DidOpenTextDocumentParams) {
+        self.notification("textDocuement/didOpen");
+    }
 
     fn will_save_wait_until_text_document(
         &mut self,
