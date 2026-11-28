@@ -151,40 +151,55 @@ pub struct RenameFilesParams {
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DeclarationParams {
+    #[serde(flatten)]
     text_document_position: TextDocumentPositionParams,
+    #[serde(flatten)]
     work_done_progress: WorkDoneProgressParams,
+    #[serde(flatten)]
     partial_result: PartialResultParams,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DefinitionParams {
+    #[serde(flatten)]
     text_document_position: TextDocumentPositionParams,
+    #[serde(flatten)]
     work_done_progress: WorkDoneProgressParams,
+    #[serde(flatten)]
     partial_result: PartialResultParams,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TypeDefinitionParams {
+    #[serde(flatten)]
     text_document_position: TextDocumentPositionParams,
+    #[serde(flatten)]
     work_done_progress: WorkDoneProgressParams,
+    #[serde(flatten)]
     partial_result: PartialResultParams,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ImplementationParams {
+    #[serde(flatten)]
     text_document_position: TextDocumentPositionParams,
+    #[serde(flatten)]
     work_done_progress: WorkDoneProgressParams,
+    #[serde(flatten)]
     partial_result: PartialResultParams,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReferenceParams {
+    #[serde(flatten)]
     text_document_position: TextDocumentPositionParams,
+    #[serde(flatten)]
     work_done_progress: WorkDoneProgressParams,
+    #[serde(flatten)]
     partial_result: PartialResultParams,
 }
 
@@ -208,6 +223,7 @@ pub struct WillSaveWaitUntilResult(pub Option<Box<[TextEdit]>>);
 /// error: code and message set in case an exception happens during the declaration request.
 ///
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[serde(untagged)]
 pub enum DeclarationResult {
     Location(Location),
     Locations(Box<[Location]>),
@@ -221,6 +237,7 @@ pub enum DeclarationResult {
 /// error: code and message set in case an exception happens during the declaration request.
 ///
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[serde(untagged)]
 pub enum DefinitionResult {
     Location(Location),
     Locations(Box<[Location]>),
@@ -234,6 +251,7 @@ pub enum DefinitionResult {
 /// error: code and message set in case an exception happens during the declaration request.
 ///
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[serde(untagged)]
 pub enum TypeDefinitionResult {
     Location(Location),
     Locations(Box<[Location]>),
@@ -247,6 +265,7 @@ pub enum TypeDefinitionResult {
 /// error: code and message set in case an exception happens during the declaration request.
 ///
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[serde(untagged)]
 pub enum ImplementationResult {
     Location(Location),
     Locations(Box<[Location]>),
@@ -260,7 +279,7 @@ pub enum ImplementationResult {
 /// error: code and message set in case an exception happens during the reference request.
 ///
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-pub struct RefereneResult(Box<[Location]>);
+pub struct RefereneResult(pub Box<[Location]>);
 
 /// Represents a location inside a resource, such as a line inside a text file.
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
