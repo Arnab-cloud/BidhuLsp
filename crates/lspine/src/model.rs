@@ -201,6 +201,7 @@ pub struct ReferenceParams {
     work_done_progress: WorkDoneProgressParams,
     #[serde(flatten)]
     partial_result: PartialResultParams,
+    context: RefereneContext,
 }
 
 // Results
@@ -482,4 +483,11 @@ impl From<&str> for ProgressToken {
     fn from(value: &str) -> Self {
         Self::String(value.to_owned())
     }
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[serde(rename_all = "camelCase")]
+pub struct RefereneContext {
+    /// Include the declaration of the current symbol.
+    include_declaration: bool,
 }
