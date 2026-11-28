@@ -64,7 +64,14 @@ pub trait LanguageServer {
     fn go_to_definition(
         &mut self,
         _params: DefinitionParams,
-    ) -> Result<Option<DefitionResult>, LSPError> {
+    ) -> Result<Option<DefinitionResult>, LSPError> {
+        Ok(None)
+    }
+
+    fn go_to_type_definition(
+        &mut self,
+        _params: TypeDefinitionParams,
+    ) -> Result<Option<TypeDefinitionResult>, LSPError> {
         Ok(None)
     }
 
