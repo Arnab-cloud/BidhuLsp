@@ -204,6 +204,15 @@ pub struct ReferenceParams {
     context: RefereneContext,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct CallHierarchyPrepareParams {
+    #[serde(flatten)]
+    text_document_position: TextDocumentPositionParams,
+    #[serde(flatten)]
+    work_done_progress: WorkDoneProgressParams,
+}
+
 // Results
 //
 
@@ -281,6 +290,12 @@ pub enum ImplementationResult {
 ///
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub struct RefereneResult(pub Box<[Location]>);
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct CallHierarchyPrepareResult(pub Box<[CallHierarchyItem]>);
+
+// ----------------
+//
 
 /// Represents a location inside a resource, such as a line inside a text file.
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
@@ -372,7 +387,7 @@ pub enum TextDocumentContentChangeEvent {
     },
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Range {
     /// The range's start position.
     pub start: Position,
@@ -381,7 +396,7 @@ pub struct Range {
     pub end: Position,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq, Clone, Eq, Hash)]
 pub struct Position {
     /// Line position in a document (zero-based).
     pub line: u32,
@@ -491,3 +506,97 @@ pub struct RefereneContext {
     /// Include the declaration of the current symbol.
     include_declaration: bool,
 }
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[serde(rename_all = "camelCase")]
+pub struct CallHierarchyItem {
+    /**
+     * The name of this item.
+     */
+    name: String,
+
+    /**
+     * The kind of this item.
+     */
+    kind: SymbolKind,
+
+    /**
+     * Tags for this item.
+     */
+    tags: Option<Box<[SymbolTag]>>,
+
+    /**
+     * More detail for this item, e.g. the signature of a function.
+     */
+    detail: Option<String>,
+
+    /**
+     * The resource identifier of this item.
+     */
+    uri: DocumentUri,
+
+    /**
+     * The range enclosing this symbol not including leading/trailing whitespace
+     * but everything else, e.g. comments and code.
+     */
+    range: Range,
+
+    /**
+     * The range that should be selected and revealed when this symbol is being
+     * picked, e.g. the name of a function. Must be contained by the
+     * [`range`](#CallHierarchyItem.range).
+     */
+    selection_range: Range,
+
+    /**
+     * A data entry field that is preserved between a call hierarchy prepare and
+     * incoming calls or outgoing calls requests.
+     */
+    data: Option<LSPAny>,
+}
+
+/// A symbol kind.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Hash)]
+pub struct SymbolKind(pub u32);
+
+impl SymbolKind {
+    pub const FILE: Self = Self(1);
+    pub const MODULE: Self = Self(2);
+    pub const NAMESPACE: Self = Self(3);
+    pub const PACKAGE: Self = Self(4);
+    pub const CLASS: Self = Self(5);
+    pub const METHOD: Self = Self(6);
+    pub const PROPERTY: Self = Self(7);
+    pub const FIELD: Self = Self(8);
+    pub const CONSTRUCTOR: Self = Self(9);
+    pub const ENUM: Self = Self(10);
+    pub const INTERFACE: Self = Self(11);
+    pub const FUNCTION: Self = Self(12);
+    pub const VARIABLE: Self = Self(13);
+    pub const CONSTANT: Self = Self(14);
+    pub const STRING: Self = Self(15);
+    pub const NUMBER: Self = Self(16);
+    pub const BOOLEAN: Self = Self(17);
+    pub const ARRAY: Self = Self(18);
+    pub const OBJECT: Self = Self(19);
+    pub const KEY: Self = Self(20);
+    pub const NULL: Self = Self(21);
+    pub const ENUMMEMBER: Self = Self(22);
+    pub const STRUCT: Self = Self(23);
+    pub const EVENT: Self = Self(24);
+    pub const OPERATOR: Self = Self(25);
+    pub const TYPEPARAMETER: Self = Self(26);
+}
+
+/// Symbol tags are extra annotations that tweak the rendering of a symbol.
+///
+/// @since 3.16
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Hash)]
+pub struct SymbolTag(pub u32);
+
+impl SymbolTag {
+    /// Render a symbol as obsolete, usually using a strike-out.
+    pub const DEPRECATED: Self = Self(1);
+}
+
+type LSPAny = serde_json::Value;

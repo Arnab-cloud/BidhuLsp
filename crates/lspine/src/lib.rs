@@ -89,6 +89,13 @@ pub trait LanguageServer {
         Ok(None)
     }
 
+    fn prepare_call_hierarchy(
+        &mut self,
+        _params: CallHierarchyPrepareParams,
+    ) -> Result<Option<CallHierarchyPrepareResult>, LSPError> {
+        Ok(None)
+    }
+
     // Workspace Features
     //
 
