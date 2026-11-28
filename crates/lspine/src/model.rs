@@ -48,24 +48,6 @@ impl Envelope {
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-pub struct InitializeRequestParams {
-    #[serde(rename = "processId")]
-    pub process_id: Option<i32>,
-    #[serde(rename = "clientInfo")]
-    pub client_info: ClientInfo,
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-pub struct InitializeResult {
-    pub capabilities: ServerCapabilities,
-    #[serde(rename = "serverInfo")]
-    pub server_info: ServerInfo,
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
-pub struct WillSaveWaitUntilResult(pub Option<Box<[TextEdit]>>);
-
-#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub struct ClientInfo {
     pub name: String,
     pub version: String,
@@ -81,6 +63,17 @@ pub struct ServerCapabilities {
 pub struct ServerInfo {
     pub name: String,
     pub version: String,
+}
+
+// Params
+//
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct InitializeRequestParams {
+    #[serde(rename = "processId")]
+    pub process_id: Option<i32>,
+    #[serde(rename = "clientInfo")]
+    pub client_info: ClientInfo,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
@@ -153,6 +146,72 @@ pub struct RenameFilesParams {
     /// An array of all files/folders renamed in this operation. When a folder
     /// is renamed, only the folder will be included, and not its children.
     files: Box<[FileRename]>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct DeclarationParams {
+    position: TextDocumentPositionParams,
+    progress: WorkDoneProgressParams,
+    partial_result: PartialResultParams,
+}
+
+// Results
+//
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct InitializeResult {
+    pub capabilities: ServerCapabilities,
+    #[serde(rename = "serverInfo")]
+    pub server_info: ServerInfo,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct WillSaveWaitUntilResult(pub Option<Box<[TextEdit]>>);
+
+/// WARNING this implementation differs from the specification
+///
+/// result: Location | Location[] | LocationLink[] |null
+/// partial result: Location[] | LocationLink[]
+/// error: code and message set in case an exception happens during the declaration request.
+///
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub enum DeclarationResult {
+    Location(Location),
+    Locations(Box<[Location]>),
+    LocationLink(Box<[LocationLink]>),
+}
+
+/// Represents a location inside a resource, such as a line inside a text file.
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct Location {
+    uri: DocumentUri,
+    range: Range,
+}
+
+/// Represents a link between a source and a target location.
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LocationLink {
+    /// Span of the origin of this link.
+    ///
+    /// Used as the underlined span for mouse interaction. Defaults to the word
+    /// range at the mouse position.
+    origin_selection_range: Option<Range>,
+
+    /// The target resource identifier of this link.
+    target_uri: DocumentUri,
+
+    /// The full target range of this link. If the target is, for example, a
+    /// symbol, then the target range is the range enclosing this symbol not
+    /// including leading/trailing whitespace but everything else like comments.
+    /// This information is typically used to highlight the range in the editor.
+    target_range: Range,
+
+    /// The range that should be selected and revealed when this link is being
+    /// followed, e.g., the name of a function. Must be contained by the
+    /// `targetRange`. See also `DocumentSymbol#range`
+    target_selection_range: Range,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
@@ -274,4 +333,54 @@ pub struct FileRename {
     /// A file:// URI for the new location of the file/folder being renamed.
     #[serde(rename = "newUri")]
     new_uri: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct TextDocumentPositionParams {
+    /// The text document.
+    #[serde(rename = "textDocument")]
+    text_document: TextDocumentIdentifier,
+
+    /// The position inside the text document.
+    position: Position,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct WorkDoneProgressParams {
+    /// An optional token that a server can use to report work done progress.
+    #[serde(rename = "workDoneToken")]
+    work_done_token: Option<ProgressToken>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct PartialResultParams {
+    /// An optional token that a server can use to report partial results (e.g.
+    /// streaming) to the client.
+    #[serde(rename = "partialResultToken")]
+    partial_result_token: Option<ProgressToken>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
+#[serde(untagged)]
+pub enum ProgressToken {
+    Integer(i64),
+    String(String),
+}
+
+impl From<i64> for ProgressToken {
+    fn from(value: i64) -> Self {
+        Self::Integer(value)
+    }
+}
+
+impl From<String> for ProgressToken {
+    fn from(value: String) -> Self {
+        Self::String(value)
+    }
+}
+
+impl From<&str> for ProgressToken {
+    fn from(value: &str) -> Self {
+        Self::String(value.to_owned())
+    }
 }

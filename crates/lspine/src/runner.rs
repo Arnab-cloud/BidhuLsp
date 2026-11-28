@@ -2,7 +2,7 @@ use log::{error, info, warn};
 use std::io::{BufRead, Write};
 
 use crate::{
-    LanguageServer,
+    DeclarationParams, LanguageServer,
     error::LSPError,
     model::{
         DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
@@ -213,12 +213,18 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
                 Ok(serde_json::Value::Null)
             }
             (State::Running, "textDocument/willSaveWaitUntil") => {
-                let params = serde_json::from_value(params)
+                let params: WillSaveTextDocumentParams = serde_json::from_value(params)
                     .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
                 let text_edits = self
                     .language_server
                     .will_save_wait_until_text_document(&params)?;
                 serde_json::to_value(text_edits).map_err(|err| LSPError::from(err).into())
+            }
+            (State::Running, "textDocument/declaration") => {
+                let params: DeclarationParams = serde_json::from_value(params)
+                    .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
+                let result = self.language_server.go_to_declaration(params)?;
+                serde_json::to_value(result).map_err(|err| LSPError::from(err).into())
             }
             (State::Running, other) => Err(RpcError::new(
                 METHOD_NOT_FOUND,

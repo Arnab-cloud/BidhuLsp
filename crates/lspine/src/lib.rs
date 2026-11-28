@@ -51,6 +51,16 @@ pub trait LanguageServer {
         self.notification("textDocument/didClose");
     }
 
+    // Language Features
+    //
+
+    fn go_to_declaration(
+        &mut self,
+        _params: DeclarationParams,
+    ) -> Result<Option<DeclarationResult>, LSPError> {
+        Ok(None)
+    }
+
     // Workspace Features
     //
 
