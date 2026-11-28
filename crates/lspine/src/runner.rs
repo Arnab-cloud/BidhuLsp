@@ -7,8 +7,8 @@ use crate::{
     model::{
         DeclarationParams, DefinitionParams, DidChangeTextDocumentParams,
         DidCloseTextDocumentParams, DidOpenTextDocumentParams, DidSaveTextDocumentParams, Envelope,
-        ImplementationParams, InitializeRequestParams, Message, RenameFilesParams, RequestId,
-        TypeDefinitionParams, WillSaveTextDocumentParams,
+        ImplementationParams, InitializeRequestParams, Message, ReferenceParams, RenameFilesParams,
+        RequestId, TypeDefinitionParams, WillSaveTextDocumentParams,
     },
     transport::{read_message, write_message},
 };
@@ -244,6 +244,12 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
                 let params: ImplementationParams = serde_json::from_value(params)
                     .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
                 let result = self.language_server.go_to_implementation(params)?;
+                serde_json::to_value(result).map_err(|err| LSPError::from(err).into())
+            }
+            (State::Running, "textDocument/references") => {
+                let params: ReferenceParams = serde_json::from_value(params)
+                    .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
+                let result = self.language_server.find_references(params)?;
                 serde_json::to_value(result).map_err(|err| LSPError::from(err).into())
             }
             (State::Running, other) => Err(RpcError::new(

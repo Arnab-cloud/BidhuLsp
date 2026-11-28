@@ -74,10 +74,18 @@ pub trait LanguageServer {
     ) -> Result<Option<TypeDefinitionResult>, LSPError> {
         Ok(None)
     }
+
     fn go_to_implementation(
         &mut self,
         _params: ImplementationParams,
     ) -> Result<Option<ImplementationResult>, LSPError> {
+        Ok(None)
+    }
+
+    fn find_references(
+        &mut self,
+        _params: ReferenceParams,
+    ) -> Result<Option<RefereneResult>, LSPError> {
         Ok(None)
     }
 

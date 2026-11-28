@@ -180,6 +180,14 @@ pub struct ImplementationParams {
     partial_result: PartialResultParams,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ReferenceParams {
+    text_document_position: TextDocumentPositionParams,
+    work_done_progress: WorkDoneProgressParams,
+    partial_result: PartialResultParams,
+}
+
 // Results
 //
 
@@ -244,6 +252,15 @@ pub enum ImplementationResult {
     Locations(Box<[Location]>),
     LocationLink(Box<[LocationLink]>),
 }
+
+/// WARNING this implementation differs from the specification
+///
+/// result: Location[] | null
+/// partial result: Location[]
+/// error: code and message set in case an exception happens during the reference request.
+///
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub struct RefereneResult(Box<[Location]>);
 
 /// Represents a location inside a resource, such as a line inside a text file.
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
