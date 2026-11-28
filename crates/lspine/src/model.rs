@@ -151,8 +151,16 @@ pub struct RenameFilesParams {
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct DeclarationParams {
-    position: TextDocumentPositionParams,
-    progress: WorkDoneProgressParams,
+    text_document_position: TextDocumentPositionParams,
+    work_done_progress: WorkDoneProgressParams,
+    partial_result: PartialResultParams,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct DefinitionParams {
+    text_document_position: TextDocumentPositionParams,
+    work_done_progress: WorkDoneProgressParams,
     partial_result: PartialResultParams,
 }
 
@@ -177,6 +185,19 @@ pub struct WillSaveWaitUntilResult(pub Option<Box<[TextEdit]>>);
 ///
 #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
 pub enum DeclarationResult {
+    Location(Location),
+    Locations(Box<[Location]>),
+    LocationLink(Box<[LocationLink]>),
+}
+
+/// WARNING this implementation differs from the specification
+///
+/// result: Location | Location[] | LocationLink[] |null
+/// partial result: Location[] | LocationLink[]
+/// error: code and message set in case an exception happens during the declaration request.
+///
+#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]
+pub enum DefitionResult {
     Location(Location),
     Locations(Box<[Location]>),
     LocationLink(Box<[LocationLink]>),

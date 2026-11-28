@@ -61,6 +61,13 @@ pub trait LanguageServer {
         Ok(None)
     }
 
+    fn go_to_definition(
+        &mut self,
+        _params: DefinitionParams,
+    ) -> Result<Option<DefitionResult>, LSPError> {
+        Ok(None)
+    }
+
     // Workspace Features
     //
 

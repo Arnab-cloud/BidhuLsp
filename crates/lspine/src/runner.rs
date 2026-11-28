@@ -2,12 +2,12 @@ use log::{error, info, warn};
 use std::io::{BufRead, Write};
 
 use crate::{
-    DeclarationParams, LanguageServer,
+    LanguageServer,
     error::LSPError,
     model::{
-        DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
-        DidSaveTextDocumentParams, Envelope, InitializeRequestParams, Message, RenameFilesParams,
-        RequestId, WillSaveTextDocumentParams,
+        DeclarationParams, DefinitionParams, DidChangeTextDocumentParams,
+        DidCloseTextDocumentParams, DidOpenTextDocumentParams, DidSaveTextDocumentParams, Envelope,
+        InitializeRequestParams, Message, RenameFilesParams, RequestId, WillSaveTextDocumentParams,
     },
     transport::{read_message, write_message},
 };
@@ -224,6 +224,13 @@ impl<T: LanguageServer, R: BufRead, W: Write> Runner<T, R, W> {
                 let params: DeclarationParams = serde_json::from_value(params)
                     .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
                 let result = self.language_server.go_to_declaration(params)?;
+                serde_json::to_value(result).map_err(|err| LSPError::from(err).into())
+            }
+
+            (State::Running, "textDocument/definition") => {
+                let params: DefinitionParams = serde_json::from_value(params)
+                    .map_err(|err| RpcError::new(INVALID_PARAMS, err.to_string()))?;
+                let result = self.language_server.go_to_definition(params)?;
                 serde_json::to_value(result).map_err(|err| LSPError::from(err).into())
             }
             (State::Running, other) => Err(RpcError::new(
