@@ -8,8 +8,6 @@ pub use model::*;
 pub use runner::*;
 pub use transport::*;
 
-// for now the error is io::Error, TODO: add
-// custom error
 pub trait LanguageServer {
     fn initialize(
         &mut self,
@@ -23,6 +21,9 @@ pub trait LanguageServer {
     // TODO: client/registerCapability
     // TODO: client/unregisterCapability
 
+    // Document Syncronization
+    //
+
     fn did_open_text_docuement(&mut self, _params: DidOpenTextDocumentParams) {
         self.notification("textDocument/didOpen");
     }
@@ -31,16 +32,8 @@ pub trait LanguageServer {
         self.notification("textDocument/didChange");
     }
 
-    fn did_close_text_docuement(&mut self, _params: DidCloseTextDocumentParams) {
-        self.notification("textDocument/didClose");
-    }
-
     fn will_save_text_docuement(&mut self, _params: WillSaveTextDocumentParams) {
         self.notification("textDocument/willSave");
-    }
-
-    fn did_save_text_docuement(&mut self, _params: DidSaveTextDocumentParams) {
-        self.notification("textDocument/didSave");
     }
 
     fn will_save_wait_until_text_document(
@@ -49,6 +42,17 @@ pub trait LanguageServer {
     ) -> Result<WillSaveWaitUntilResult, LSPError> {
         Ok(WillSaveWaitUntilResult(None))
     }
+
+    fn did_save_text_docuement(&mut self, _params: DidSaveTextDocumentParams) {
+        self.notification("textDocument/didSave");
+    }
+
+    fn did_close_text_docuement(&mut self, _params: DidCloseTextDocumentParams) {
+        self.notification("textDocument/didClose");
+    }
+
+    // Workspace Features
+    //
 
     fn did_rename_files_workspace(&mut self, _params: RenameFilesParams) {
         self.notification("workspace/didRenameFiles");
